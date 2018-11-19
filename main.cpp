@@ -23,17 +23,16 @@ const float CUBE_SIZE = 2.0;
 const float CAM_MOVE_SPEED = 0.01;		// adjust based on how shitty your computer is
 const float CAM_ROTATE_SPEED = 10.0;
 const float FAR_PLANE_DIST = 1000.0;
-const float EYE_X_START = -5;
-const float EYE_Z_START = -5;
-const float FOCUS_X_START = 50;
-const float FOCUS_Z_START = 50;
-float eye[3] = {EYE_X_START, CUBE_SIZE * 2, EYE_Z_START};
-float focus[3] = {FOCUS_X_START, 0, FOCUS_Z_START};
-float objPos[3] = {0, 0, 0};		// possibly not needed
+const float CUBE_CAM_OFFSET = 2;
+const float EYE_START[3] = {-5, 3, -5};		// -5, 3, 5 and 8, 0, 8 for FOCUS_START seem to be a good "third person" view
+const float FOCUS_START[3] = {8, 0, 8};
+const float OBJ_POS_START[3] = {EYE_START[0] + CUBE_CAM_OFFSET, CUBE_SIZE/2, EYE_START[2] + CUBE_CAM_OFFSET};
+float eye[3];		// initialized to EYE_START in init function
+float focus[3];		// initialized to FOCUS_START in init function
+float objPos[3];
 
 // BASIC SHITTY PHYSICS! YES!
-float speedX = 0.0;
-float speedZ = 0.0;
+float speed[3] = {0, 0, 0};
 
 // light source 1 
 float pos0[4] = {50, 0, 50, 0};
@@ -48,9 +47,7 @@ float dif1[4] = {1, 0, 0, 1};
 float spec1[4] = {1, 0, 0, 1};
 
 // rotation angles
-float angleX = 0;
-float angleY = 0;
-float angleZ = 0;
+float angle[3] = {0, 0, 0};
 
 // bullet test
 float bulletDist = 0;
@@ -93,20 +90,20 @@ void keyboard(unsigned char key, int x, int y) {
 		// 	focus[0] -= CAM_MOVE_SPEED;
 		// 	break;
 		case 'w':
-			speedZ += CAM_MOVE_SPEED;
-			printf("Speed Z: %f\n", speedZ);
+			speed[2] += CAM_MOVE_SPEED;
+			printf("Speed Z: %f\n", speed[2]);
 			break;
 		case 's':
-			speedZ -= CAM_MOVE_SPEED;
-			printf("Speed Z: %f\n", speedZ);
+			speed[2] -= CAM_MOVE_SPEED;
+			printf("Speed Z: %f\n", speed[2]);
 			break;
 		case 'd':
-			speedX += CAM_MOVE_SPEED;
-			printf("Speed X: %f\n", speedX);
+			speed[0] += CAM_MOVE_SPEED;
+			printf("Speed X: %f\n", speed[0]);
 			break;
 		case 'a':
-			speedX -= CAM_MOVE_SPEED;
-			printf("Speed X: %f\n", speedX);
+			speed[0] -= CAM_MOVE_SPEED;
+			printf("Speed X: %f\n", speed[0]);
 			break;
 		case 'r':
 			eye[1] += CAM_MOVE_SPEED;
@@ -117,17 +114,18 @@ void keyboard(unsigned char key, int x, int y) {
 			focus[1] -= CAM_MOVE_SPEED;
 			break;
 		case ' ':
-			speedX = 0;
-			speedZ = 0;
+			speed[0] = 0;
+			speed[2] = 0;
 			printf("EMERGENCY MAGIC BRAKE! Press 'x' to reset.\n");
 			break;
 		case 'x':
-			eye[0] = EYE_X_START;
-			eye[2] = EYE_Z_START;
-			focus[0] = FOCUS_X_START;
-			focus[2] = FOCUS_Z_START;
-			speedX = 0;
-			speedZ = 0;
+			eye[0] = EYE_START[0];
+			eye[2] = EYE_START[2];
+			focus[0] = FOCUS_START[0];
+			focus[2] = FOCUS_START[2];
+			objPos[0] = 
+			speed[0] = 0;
+			speed[2] = 0;
 			printf("RESET!\n");
 			break;
 	}
@@ -157,6 +155,15 @@ void init() {
 	glLightfv(GL_LIGHT1, GL_SPECULAR, spec1);
 	glEnable(GL_LIGHT1);
 
+	for (int i = 0; i < sizeof(eye)/sizeof(eye[0]); i++) {
+		eye[i] = EYE_START[i];
+	}
+	for (int  i = 0; i < sizeof(focus)/sizeof(focus[0]); i++) {
+		focus[i] = FOCUS_START[i];
+	}
+	for (int  i = 0; i < sizeof(objPos)/sizeof(objPos[0]); i++) {
+		objPos[i] = OBJ_POS_START[i];
+	}
 }
 
 void display() {
@@ -169,24 +176,27 @@ void display() {
 	drawAxis();
 
 	glPushMatrix();
-		glRotatef(angleX, 1, 0, 0);
-		glRotatef(angleY, 0, 1, 0);
-		glRotatef(angleZ, 0, 0, 1);
+		glRotatef(angle[0], 1, 0, 0);
+		glRotatef(angle[1], 0, 1, 0);
+		glRotatef(angle[2], 0, 0, 1);
 		glBegin(GL_POLYGON);
 			glVertex3f(-MAP_SIZE, 0, -MAP_SIZE);
 			glVertex3f(-MAP_SIZE, 0, MAP_SIZE);
 			glVertex3f(MAP_SIZE, 0, MAP_SIZE);
 			glVertex3f(MAP_SIZE, 0, -MAP_SIZE);
 		glEnd();
+		// cube
 		glPushMatrix();
-			glTranslatef(eye[0] + 5, eye[1], eye[2] + 5);
+			glTranslatef(objPos[0], objPos[1], objPos[2]);
 			glutSolidCube(CUBE_SIZE);
 		glPopMatrix();
 	glPopMatrix();
-	eye[0] += speedX;
-	focus[0] += speedX;
-	eye[2] += speedZ;
-	focus[2] += speedZ;
+	eye[0] += speed[0];
+	focus[0] += speed[0];
+	objPos[0] += speed[0];
+	eye[2] += speed[2];
+	focus[2] += speed[2];
+	objPos[2] += speed[2];
 
 	glutSwapBuffers();
 }
@@ -195,22 +205,22 @@ void special(int key, int x, int y) {	// camera rotations
 	switch(key)
 	{
 		case GLUT_KEY_DOWN:
-			angleX -= CAM_ROTATE_SPEED;
+			angle[0] -= CAM_ROTATE_SPEED;
 			break;
 		case GLUT_KEY_UP:
-			angleX += CAM_ROTATE_SPEED;
+			angle[0] += CAM_ROTATE_SPEED;
 			break;
 		case GLUT_KEY_LEFT:
-			angleY -= CAM_ROTATE_SPEED;
+			angle[1] -= CAM_ROTATE_SPEED;
 			break;
 		case GLUT_KEY_RIGHT:
-			angleY += CAM_ROTATE_SPEED;
+			angle[1] += CAM_ROTATE_SPEED;
 			break;
 		case GLUT_KEY_PAGE_DOWN:
-			angleZ -= CAM_ROTATE_SPEED;
+			angle[2] -= CAM_ROTATE_SPEED;
 			break;
 		case GLUT_KEY_PAGE_UP:
-			angleZ += CAM_ROTATE_SPEED;
+			angle[2] += CAM_ROTATE_SPEED;
 			break;
     }
 	glutPostRedisplay();
