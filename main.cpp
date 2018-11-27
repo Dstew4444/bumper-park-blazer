@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -7,8 +8,12 @@
 #include <ctime>
 #include <unistd.h>
 #include <algorithm>
+#include <vector>
+#include "car.h"
 
 using namespace std;
+
+car test;
 
 // window size and initial position
 const int INITIAL_X_POS = 600;
@@ -23,31 +28,23 @@ const float CUBE_SIZE = 2.0;
 const float CAM_MOVE_SPEED = 0.01;		// adjust based on how shitty your computer is
 const float CAM_ROTATE_SPEED = 10.0;
 const float FAR_PLANE_DIST = 1000.0;
-const float CUBE_CAM_OFFSET = 2;
-const float EYE_START[3] = {-5, 3, -5};		// -5, 3, 5 and 8, 0, 8 for FOCUS_START seem to be a good "third person" view
-const float FOCUS_START[3] = {8, 0, 8};
-const float OBJ_POS_START[3] = {EYE_START[0] + CUBE_CAM_OFFSET, CUBE_SIZE/2, EYE_START[2] + CUBE_CAM_OFFSET};
-float eye[3];		// initialized to EYE_START in init function
-float focus[3];		// initialized to FOCUS_START in init function
-float objPos[3];
-
-// BASIC SHITTY PHYSICS! YES!
-float speed[3] = {0, 0, 0};
+// const float EYE_START[3] = {-5, 3, -5};		// -5, 3, 5 and 8, 0, 8 for FOCUS_START seem to be a good "third person" view
+// const float FOCUS_START[3] = {8, 0, 8};
+// const float OBJ_POS_START[3] = {EYE_START[0] + CUBE_CAM_OFFSET, CUBE_SIZE/2, EYE_START[2] + CUBE_CAM_OFFSET};
+vector<float> eye;			// initialized to EYE_START in init function
+vector<float> focus;		// initialized to FOCUS_START in init function
 
 // light source 1 
 float pos0[4] = {50, 0, 50, 0};
-float amb0[4] = {0, 0, 1, 1};
-float dif0[4] = {0, 0, 1, 1};
-float spec0[4] = {0, 0, 1, 1};
+float amb0[4] = {1, 0, 0, 1};
+float dif0[4] = {1, 0, 0, 1};
+float spec0[4] = {1, 0, 0, 1};
 
 // light source 2
 float pos1[4] = {-50, 0, -50, 0};
-float amb1[4] = {1, 0, 0, 1};
-float dif1[4] = {1, 0, 0, 1};
-float spec1[4] = {1, 0, 0, 1};
-
-// rotation angles
-float angle[3] = {0, 0, 0};
+float amb1[4] = {0, 0, 0, 1};
+float dif1[4] = {0, 0, 0, 1};
+float spec1[4] = {0, 0, 0, 1};
 
 // bullet test
 float bulletDist = 0;
@@ -74,59 +71,44 @@ void keyboard(unsigned char key, int x, int y) {
 		case 'q':		// press q to quit
 			exit(0);
 			break;
-		// case 'w':
-		// 	eye[2] += CAM_MOVE_SPEED;
-		// 	focus[2] += CAM_MOVE_SPEED;
-		// 	break;
-		// case 's':
-		// 	eye[2] -= CAM_MOVE_SPEED;
-		// 	focus[2] -= CAM_MOVE_SPEED;
-		// case 'd':
-		// 	eye[0] += CAM_MOVE_SPEED;
-		// 	focus[0] += CAM_MOVE_SPEED;
-		// 	break;
-		// case 'a':
-		// 	eye[0] -= CAM_MOVE_SPEED;
-		// 	focus[0] -= CAM_MOVE_SPEED;
-		// 	break;
 		case 'w':
-			speed[2] += CAM_MOVE_SPEED;
-			printf("Speed Z: %f\n", speed[2]);
+			test.speed[2] += CAM_MOVE_SPEED;
+			printf("Speed Z: %f\n", test.speed[2]);
 			break;
 		case 's':
-			speed[2] -= CAM_MOVE_SPEED;
-			printf("Speed Z: %f\n", speed[2]);
+			test.speed[2] -= CAM_MOVE_SPEED;
+			printf("Speed Z: %f\n", test.speed[2]);
 			break;
 		case 'd':
-			speed[0] += CAM_MOVE_SPEED;
-			printf("Speed X: %f\n", speed[0]);
+			test.speed[0] += CAM_MOVE_SPEED;
+			printf("Speed X: %f\n", test.speed[0]);
 			break;
 		case 'a':
-			speed[0] -= CAM_MOVE_SPEED;
-			printf("Speed X: %f\n", speed[0]);
+			test.speed[0] -= CAM_MOVE_SPEED;
+			printf("Speed X: %f\n", test.speed[0]);
 			break;
 		case 'r':
-			eye[1] += CAM_MOVE_SPEED;
-			focus[1] += CAM_MOVE_SPEED;
+			test.carEye[1] += CAM_MOVE_SPEED;
+			test.carFocus[1] += CAM_MOVE_SPEED;
 			break;
 		case 'f':
-			eye[1] -= CAM_MOVE_SPEED;
-			focus[1] -= CAM_MOVE_SPEED;
+			test.carEye[1] -= CAM_MOVE_SPEED;
+			test.carFocus[1] -= CAM_MOVE_SPEED;
 			break;
 		case ' ':
-			speed[0] = 0;
-			speed[2] = 0;
+			test.speed[0] = 0;
+			test.speed[2] = 0;
 			printf("EMERGENCY MAGIC BRAKE! Press 'x' to reset.\n");
 			break;
 		case 'x':
-			eye[0] = EYE_START[0];
-			eye[2] = EYE_START[2];
-			focus[0] = FOCUS_START[0];
-			focus[2] = FOCUS_START[2];
-			objPos[0] = OBJ_POS_START[0];
-			objPos[2] = OBJ_POS_START[2];
-			speed[0] = 0;
-			speed[2] = 0;
+			test.carEye[0] = test.EYE_START[0];
+			test.carEye[2] = test.EYE_START[2];
+			test.carFocus[0] = test.FOCUS_START[0];
+			test.carFocus[2] = test.FOCUS_START[2];
+			test.pos[0] = test.OBJ_START[0];
+			test.pos[2] = test.OBJ_START[2];
+			test.speed[0] = 0;
+			test.speed[2] = 0;
 			printf("RESET!\n");
 			break;
 	}
@@ -156,16 +138,6 @@ void init() {
 	glLightfv(GL_LIGHT1, GL_SPECULAR, spec1);
 	glEnable(GL_LIGHT1);
 
-	// initializes arrays to start values
-	for (int i = 0; i < sizeof(eye)/sizeof(eye[0]); i++) {
-		eye[i] = EYE_START[i];
-	}
-	for (int  i = 0; i < sizeof(focus)/sizeof(focus[0]); i++) {
-		focus[i] = FOCUS_START[i];
-	}
-	for (int  i = 0; i < sizeof(objPos)/sizeof(objPos[0]); i++) {
-		objPos[i] = OBJ_POS_START[i];
-	}
 }
 
 void display() {
@@ -174,25 +146,8 @@ void display() {
 	glLoadIdentity();
 
 	// movable camera
-	gluLookAt(eye[0], eye[1], eye[2], focus[0], focus[1], focus[2], 0, 1, 0);
+	gluLookAt(test.carEye[0], test.carEye[1], test.carEye[2], test.carFocus[0], test.carFocus[1], test.carFocus[2], 0, 1, 0);
 	drawAxis();
-
-	// glPushMatrix();
-	// 	glRotatef(angle[0], 1, 0, 0);
-	// 	glRotatef(angle[1], 0, 1, 0);
-	// 	glRotatef(angle[2], 0, 0, 1);
-	// 	glBegin(GL_POLYGON);
-	// 		glVertex3f(-MAP_SIZE, 0, -MAP_SIZE);
-	// 		glVertex3f(-MAP_SIZE, 0, MAP_SIZE);
-	// 		glVertex3f(MAP_SIZE, 0, MAP_SIZE);
-	// 		glVertex3f(MAP_SIZE, 0, -MAP_SIZE);
-	// 	glEnd();
-	// 	// cube
-	// 	glPushMatrix();
-	// 		glTranslatef(objPos[0], objPos[1], objPos[2]);
-	// 		glutSolidCube(CUBE_SIZE);
-	// 	glPopMatrix();
-	// glPopMatrix();
 
 		glBegin(GL_POLYGON);
 			glVertex3f(-MAP_SIZE, 0, -MAP_SIZE);
@@ -202,47 +157,47 @@ void display() {
 		glEnd();
 		// cube
 		glPushMatrix();
-			glRotatef(angle[0], 1, 0, 0);
-			glRotatef(angle[1], 0, 1, 0);
-			glRotatef(angle[2], 0, 0, 1);
-			glTranslatef(objPos[0], objPos[1], objPos[2]);
+			// glRotatef(angle[0], 1, 0, 0);
+			// glRotatef(angle[1], 0, 1, 0);
+			// glRotatef(angle[2], 0, 0, 1);
+			glTranslatef(test.pos[0], test.pos[1], test.pos[2]);
 			glutSolidCube(CUBE_SIZE);
 		glPopMatrix();
 
-	eye[0] += speed[0];
-	focus[0] += speed[0];
-	objPos[0] += speed[0];
-	eye[2] += speed[2];
-	focus[2] += speed[2];
-	objPos[2] += speed[2];
+	test.carEye[0] += test.speed[0];
+	test.carFocus[0] += test.speed[0];
+	test.pos[0] += test.speed[0];
+	test.carEye[2] += test.speed[2];
+	test.carFocus[2] += test.speed[2];
+	test.pos[2] += test.speed[2];
 
 	glutSwapBuffers();
 }
 
-void special(int key, int x, int y) {	// camera rotations
-	switch(key)
-	{
-		case GLUT_KEY_DOWN:
-			angle[0] -= CAM_ROTATE_SPEED;
-			break;
-		case GLUT_KEY_UP:
-			angle[0] += CAM_ROTATE_SPEED;
-			break;
-		case GLUT_KEY_LEFT:
-			angle[1] -= CAM_ROTATE_SPEED;
-			break;
-		case GLUT_KEY_RIGHT:
-			angle[1] += CAM_ROTATE_SPEED;
-			break;
-		case GLUT_KEY_PAGE_DOWN:
-			angle[2] -= CAM_ROTATE_SPEED;
-			break;
-		case GLUT_KEY_PAGE_UP:
-			angle[2] += CAM_ROTATE_SPEED;
-			break;
-    }
-	glutPostRedisplay();
-}
+// void special(int key, int x, int y) {	// camera rotations
+// 	switch(key)
+// 	{
+// 		case GLUT_KEY_DOWN:
+// 			angle[0] -= CAM_ROTATE_SPEED;
+// 			break;
+// 		case GLUT_KEY_UP:
+// 			angle[0] += CAM_ROTATE_SPEED;
+// 			break;
+// 		case GLUT_KEY_LEFT:
+// 			angle[1] -= CAM_ROTATE_SPEED;
+// 			break;
+// 		case GLUT_KEY_RIGHT:
+// 			angle[1] += CAM_ROTATE_SPEED;
+// 			break;
+// 		case GLUT_KEY_PAGE_DOWN:
+// 			angle[2] -= CAM_ROTATE_SPEED;
+// 			break;
+// 		case GLUT_KEY_PAGE_UP:
+// 			angle[2] += CAM_ROTATE_SPEED;
+// 			break;
+//     }
+// 	glutPostRedisplay();
+// }
 
 void mouse(int btn, int state, int x, int y) {
 
@@ -266,7 +221,7 @@ void FPS(int val) {
 void callBackInit() {
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);
-	glutSpecialFunc(special);
+	//glutSpecialFunc(special);
 	glutMouseFunc(mouse);
 	glutReshapeFunc(reshape);
 	glutTimerFunc(0, FPS, 0);
@@ -285,6 +240,7 @@ int main(int argc, char** argv) {
 
 	init();
 	callBackInit();
-	glutMainLoop();				
+	glutMainLoop();
+
 	return(0);					
 }
