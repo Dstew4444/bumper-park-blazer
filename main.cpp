@@ -123,7 +123,8 @@ void keyboard(unsigned char key, int x, int y) {
 			eye[2] = EYE_START[2];
 			focus[0] = FOCUS_START[0];
 			focus[2] = FOCUS_START[2];
-			objPos[0] = 
+			objPos[0] = OBJ_POS_START[0];
+			objPos[2] = OBJ_POS_START[2];
 			speed[0] = 0;
 			speed[2] = 0;
 			printf("RESET!\n");
@@ -155,6 +156,7 @@ void init() {
 	glLightfv(GL_LIGHT1, GL_SPECULAR, spec1);
 	glEnable(GL_LIGHT1);
 
+	// initializes arrays to start values
 	for (int i = 0; i < sizeof(eye)/sizeof(eye[0]); i++) {
 		eye[i] = EYE_START[i];
 	}
@@ -175,10 +177,23 @@ void display() {
 	gluLookAt(eye[0], eye[1], eye[2], focus[0], focus[1], focus[2], 0, 1, 0);
 	drawAxis();
 
-	glPushMatrix();
-		glRotatef(angle[0], 1, 0, 0);
-		glRotatef(angle[1], 0, 1, 0);
-		glRotatef(angle[2], 0, 0, 1);
+	// glPushMatrix();
+	// 	glRotatef(angle[0], 1, 0, 0);
+	// 	glRotatef(angle[1], 0, 1, 0);
+	// 	glRotatef(angle[2], 0, 0, 1);
+	// 	glBegin(GL_POLYGON);
+	// 		glVertex3f(-MAP_SIZE, 0, -MAP_SIZE);
+	// 		glVertex3f(-MAP_SIZE, 0, MAP_SIZE);
+	// 		glVertex3f(MAP_SIZE, 0, MAP_SIZE);
+	// 		glVertex3f(MAP_SIZE, 0, -MAP_SIZE);
+	// 	glEnd();
+	// 	// cube
+	// 	glPushMatrix();
+	// 		glTranslatef(objPos[0], objPos[1], objPos[2]);
+	// 		glutSolidCube(CUBE_SIZE);
+	// 	glPopMatrix();
+	// glPopMatrix();
+
 		glBegin(GL_POLYGON);
 			glVertex3f(-MAP_SIZE, 0, -MAP_SIZE);
 			glVertex3f(-MAP_SIZE, 0, MAP_SIZE);
@@ -187,10 +202,13 @@ void display() {
 		glEnd();
 		// cube
 		glPushMatrix();
+			glRotatef(angle[0], 1, 0, 0);
+			glRotatef(angle[1], 0, 1, 0);
+			glRotatef(angle[2], 0, 0, 1);
 			glTranslatef(objPos[0], objPos[1], objPos[2]);
 			glutSolidCube(CUBE_SIZE);
 		glPopMatrix();
-	glPopMatrix();
+
 	eye[0] += speed[0];
 	focus[0] += speed[0];
 	objPos[0] += speed[0];
