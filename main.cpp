@@ -49,6 +49,10 @@ bool bulletFired = false;
 const float BULLET_SIZE = 3;
 const float BULLET_SPEED = 10;
 
+float degToRad(float x) {
+	return x * M_PI/180;
+}
+
 void drawAxis() {
 	glColor3f(1, 1, 1);
 	glBegin(GL_LINES);
@@ -161,12 +165,15 @@ void display() {
 			glutSolidCube(CUBE_SIZE);
 		glPopMatrix();
 
-	test.carEye[0] += test.speed[0];
-	test.carFocus[0] += test.speed[0];
-	test.pos[0] += test.speed[0];
-	test.carEye[2] += test.speed[2];
-	test.carFocus[2] += test.speed[2];
-	test.pos[2] += test.speed[2];
+	test.carEye[0] += test.speed[0] * cos(degToRad(test.angle[0]));
+	test.carFocus[0] += test.speed[0] * cos(degToRad(test.angle[0]));
+	test.pos[0] += test.speed[0] * cos(degToRad(test.angle[0]));
+	test.carEye[2] += test.speed[2] * cos(degToRad(test.angle[2]));
+	test.carFocus[2] += test.speed[2] * cos(degToRad(test.angle[2]));
+	test.pos[2] += test.speed[2] * cos(degToRad(test.angle[2]));
+
+	//test.carEye[0] = test.pos[0] - 5 * sin(degToRad(test.angle[0]));
+
 
 	glutSwapBuffers();
 }
@@ -176,21 +183,27 @@ void special(int key, int x, int y) {	// camera rotations
 	{
 		case GLUT_KEY_DOWN:
 			test.angle[0] -= CAM_ROTATE_SPEED;
+			printf("Angle X: %f\n", test.angle[0]);
 			break;
 		case GLUT_KEY_UP:
 			test.angle[0] += CAM_ROTATE_SPEED;
+			printf("Angle X: %f\n", test.angle[0]);
 			break;
 		case GLUT_KEY_LEFT:
 			test.angle[1] -= CAM_ROTATE_SPEED;
+			printf("Angle Y: %f\n", test.angle[1]);
 			break;
 		case GLUT_KEY_RIGHT:
 			test.angle[1] += CAM_ROTATE_SPEED;
+			printf("Angle Y: %f\n", test.angle[1]);
 			break;
 		case GLUT_KEY_PAGE_DOWN:
 			test.angle[2] -= CAM_ROTATE_SPEED;
+			printf("Angle Z: %f\n", test.angle[2]);
 			break;
 		case GLUT_KEY_PAGE_UP:
 			test.angle[2] += CAM_ROTATE_SPEED;
+			printf("Angle Z: %f\n", test.angle[2]);
 			break;
     }
 	glutPostRedisplay();
@@ -222,10 +235,6 @@ void callBackInit() {
 	glutMouseFunc(mouse);
 	glutReshapeFunc(reshape);
 	glutTimerFunc(0, FPS, 0);
-}
-
-float degToRad(float x) {
-	return x * M_PI/180;
 }
 
 int main(int argc, char** argv) {
