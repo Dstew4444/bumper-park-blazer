@@ -28,11 +28,8 @@ const float CUBE_SIZE = 2.0;
 const float CAM_MOVE_SPEED = 0.01;		// adjust based on how shitty your computer is
 const float CAM_ROTATE_SPEED = 10.0;
 const float FAR_PLANE_DIST = 1000.0;
-// const float EYE_START[3] = {-5, 3, -5};		// -5, 3, 5 and 8, 0, 8 for FOCUS_START seem to be a good "third person" view
-// const float FOCUS_START[3] = {8, 0, 8};
-// const float OBJ_POS_START[3] = {EYE_START[0] + CUBE_CAM_OFFSET, CUBE_SIZE/2, EYE_START[2] + CUBE_CAM_OFFSET};
-vector<float> eye;			// initialized to EYE_START in init function
-vector<float> focus;		// initialized to FOCUS_START in init function
+// vector<float> eye;			// initialized to EYE_START in init function
+// vector<float> focus;		// initialized to FOCUS_START in init function
 
 // light source 1 
 float pos0[4] = {50, 0, 50, 0};
@@ -157,9 +154,9 @@ void display() {
 		glEnd();
 		// cube
 		glPushMatrix();
-			// glRotatef(angle[0], 1, 0, 0);
-			// glRotatef(angle[1], 0, 1, 0);
-			// glRotatef(angle[2], 0, 0, 1);
+			glRotatef(test.angle[0], 1, 0, 0);
+			glRotatef(test.angle[1], 0, 1, 0);
+			glRotatef(test.angle[2], 0, 0, 1);
 			glTranslatef(test.pos[0], test.pos[1], test.pos[2]);
 			glutSolidCube(CUBE_SIZE);
 		glPopMatrix();
@@ -174,30 +171,30 @@ void display() {
 	glutSwapBuffers();
 }
 
-// void special(int key, int x, int y) {	// camera rotations
-// 	switch(key)
-// 	{
-// 		case GLUT_KEY_DOWN:
-// 			angle[0] -= CAM_ROTATE_SPEED;
-// 			break;
-// 		case GLUT_KEY_UP:
-// 			angle[0] += CAM_ROTATE_SPEED;
-// 			break;
-// 		case GLUT_KEY_LEFT:
-// 			angle[1] -= CAM_ROTATE_SPEED;
-// 			break;
-// 		case GLUT_KEY_RIGHT:
-// 			angle[1] += CAM_ROTATE_SPEED;
-// 			break;
-// 		case GLUT_KEY_PAGE_DOWN:
-// 			angle[2] -= CAM_ROTATE_SPEED;
-// 			break;
-// 		case GLUT_KEY_PAGE_UP:
-// 			angle[2] += CAM_ROTATE_SPEED;
-// 			break;
-//     }
-// 	glutPostRedisplay();
-// }
+void special(int key, int x, int y) {	// camera rotations
+	switch(key)
+	{
+		case GLUT_KEY_DOWN:
+			test.angle[0] -= CAM_ROTATE_SPEED;
+			break;
+		case GLUT_KEY_UP:
+			test.angle[0] += CAM_ROTATE_SPEED;
+			break;
+		case GLUT_KEY_LEFT:
+			test.angle[1] -= CAM_ROTATE_SPEED;
+			break;
+		case GLUT_KEY_RIGHT:
+			test.angle[1] += CAM_ROTATE_SPEED;
+			break;
+		case GLUT_KEY_PAGE_DOWN:
+			test.angle[2] -= CAM_ROTATE_SPEED;
+			break;
+		case GLUT_KEY_PAGE_UP:
+			test.angle[2] += CAM_ROTATE_SPEED;
+			break;
+    }
+	glutPostRedisplay();
+}
 
 void mouse(int btn, int state, int x, int y) {
 
@@ -221,10 +218,14 @@ void FPS(int val) {
 void callBackInit() {
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);
-	//glutSpecialFunc(special);
+	glutSpecialFunc(special);
 	glutMouseFunc(mouse);
 	glutReshapeFunc(reshape);
 	glutTimerFunc(0, FPS, 0);
+}
+
+float degToRad(float x) {
+	return x * M_PI/180;
 }
 
 int main(int argc, char** argv) {
